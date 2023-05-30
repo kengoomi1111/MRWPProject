@@ -3,12 +3,12 @@ import random
 from itertools import groupby
 import matplotlib.pyplot as plt
 
-X = 50
+X = 200
 Y = 0.5
 G = nx.Graph()
 death = []
 
-threshold = 20
+threshold = 25
 
 G.add_node(0)
 G.add_node(1)
@@ -32,4 +32,4 @@ print('For ' + str(X) + ' nodes, ' + str(threshold) + ' as threshold')
 
 print('number of death = ' + str(len(death)))
 
-# nx.write_gexf(G, 'scale_free_node'+str(X)+'threshold'+str(threshold)+'.gexf')
+nx.write_gexf(G, 'scale_free_node'+str(X)+'threshold'+str(threshold)+'.gexf')

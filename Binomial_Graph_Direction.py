@@ -3,12 +3,12 @@ import random
 from itertools import groupby
 import matplotlib.pyplot as plt
 
-X = 100
+X = 200
 Y = 0.5
 G = nx.DiGraph()
 death = []
 
-threshold = 3
+threshold = 30
 
 G.add_node(0)
 G.add_node(1)
@@ -34,4 +34,5 @@ print('For ' + str(X) + ' nodes, ' + str(threshold) + ' as threshold')
 
 print('number of death = ' + str(len(death)))
 
-# nx.write_gexf(G, 'binomial_node'+str(X)+'threshold'+str(threshold)+'.gexf')
+nx.write_gexf(G, 'binomial_directed_node'+str(X) +
+              'threshold'+str(threshold)+'.gexf')
