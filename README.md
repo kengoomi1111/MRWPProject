@@ -21,3 +21,6 @@ edge regrowth algorithm, normal cases in directed network
 - FINISHED Network Evolution Visualisation for Directed Graphs
 - FINISHED Degree Distribution Visualisation
 - FINISHED Degree Centrality Visualisation
+- FINISHED Betweenness Centrality Visualisation
+- FINISHED Average Path Length Visualisation
+- FINISHED Density Visualisation
