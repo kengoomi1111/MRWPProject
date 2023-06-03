@@ -21,35 +21,54 @@ def create_trace_for_nodes(graph, pos, node_color):
 
     return node_trace
 
-def create_trace_for_edges(graph, pos, edge_color):
-    edge_trace = []
-    for edge in graph.edges():
-        x0, y0 = pos[edge[0]]
-        x1, y1 = pos[edge[1]]
-        
-        arrow_annotation = dict(
-            ax=x0,
-            ay=y0,
-            axref='x',
-            ayref='y',
-            x=x1,
-            y=y1,
-            xref='x',
-            yref='y',
-            showarrow=True,
-            arrowhead=2,
-            arrowsize=1,
-            arrowwidth=2,
-            arrowcolor=edge_color
+def create_trace_for_edges(graph, pos, edge_color, directed):
+    if directed:
+        edge_trace = []
+        for edge in graph.edges():
+            x0, y0 = pos[edge[0]]
+            x1, y1 = pos[edge[1]]
+
+            arrow_annotation = dict(
+                ax=x0,
+                ay=y0,
+                axref='x',
+                ayref='y',
+                x=x1,
+                y=y1,
+                xref='x',
+                yref='y',
+                showarrow=True,
+                arrowhead=1,
+                arrowsize=1,
+                arrowwidth=0.5,
+                arrowcolor=edge_color
+            )
+            edge_trace.append(arrow_annotation)
+    else:
+        edge_x = []
+        edge_y = []
+        for edge in graph.edges():
+            x0, y0 = pos[edge[0]]
+            x1, y1 = pos[edge[1]]
+            edge_x.extend([x0, x1, None])
+            edge_y.extend([y0, y1, None])
+
+        edge_trace = go.Scatter(
+            x=edge_x, y=edge_y,
+            line=dict(width=0.5, color=edge_color),
+            hoverinfo='none',
+            mode='lines'
         )
-        edge_trace.append(arrow_annotation)
 
     return edge_trace
 
 def create_frames(path, directed):
+    max_frame = 1000
+
     all_nodes = set()
     all_graphs = []
     files = sorted((f for f in os.listdir(f'{path}') if re.search(r'timestep_(\d+).gexf', f)), key=lambda x: int(re.search(r'timestep_(\d+).gexf', x).group(1)))
+    files = [file for i, file in enumerate(files) if i < max_frame]
 
     for file in files:  
         if file.endswith('.gexf'):
@@ -64,18 +83,29 @@ def create_frames(path, directed):
     frames = []
     for i, G in enumerate(all_graphs):
         node_trace = create_trace_for_nodes(G, pos, 'blue')
-        edge_trace = create_trace_for_edges(G, pos, 'gray') if directed else []
+        edge_trace = create_trace_for_edges(G, pos, 'gray', directed)
 
-        frame = go.Frame(
-            data=[node_trace],
-            layout=go.Layout(
-                title_text=files[i],
-                annotations=edge_trace,
-                xaxis=dict(range=[-1.5, 1.5]),  # ensuring all frames have the same axes
-                yaxis=dict(range=[-1.5, 1.5])   # ensuring all frames have the same axes
-            ),
-            name=str(i)
-        )
+        if directed:
+            frame = go.Frame(
+                data=[node_trace],
+                layout=go.Layout(
+                    title_text=files[i],
+                    annotations=edge_trace,
+                    xaxis=dict(range=[-1.5, 1.5]),  
+                    yaxis=dict(range=[-1.5, 1.5])   
+                ),
+                name=str(i)
+            )
+        else:
+            frame = go.Frame(
+                data=[node_trace, edge_trace],
+                layout=go.Layout(
+                    title_text=files[i],
+                    xaxis=dict(range=[-1.5, 1.5]),  
+                    yaxis=dict(range=[-1.5, 1.5])  
+                ),
+                name=str(i)
+            )
         frames.append(frame)
     return frames, files
 
@@ -102,46 +132,75 @@ def create_slider(frames):
     )]
     return sliders
 
-def create_animation(frames, files, sliders):
-    fig = go.Figure(
-        data=[frames[0]['data'][0]],
-        layout=go.Layout(
-           xaxis=dict(range=[-1.5, 1.5]),
-            yaxis=dict(range=[-1.5, 1.5]),
-            title=dict(text=files[0], font=dict(size=20)),
-            hovermode="closest",
-            updatemenus=[{
-                "type": "buttons",
-                "buttons": [
-                    {
-                        "label": "Play",
-                        "method": "animate",
-                        "args": [None, {"frame": {"duration": 300, "redraw": True}, "fromcurrent": True, "transition": {"duration": 0}}],
-                    },
-                    {
-                        "label": "Pause",
-                        "method": "animate",
-                        "args": [[None], {"frame": {"duration": 0, "redraw": True}, "mode": "immediate", "transition": {"duration": 0}}],
-                    }
-                ],
-            }],
-            annotations=frames[0]['layout']['annotations'],
-            sliders=sliders
-        ),
-        frames=frames
-    )
+def create_animation(frames, files, sliders, directed):
+    if directed:
+        fig = go.Figure(
+            data=[frames[0]['data'][0]],
+            layout=go.Layout(
+               xaxis=dict(range=[-1.5, 1.5]),
+                yaxis=dict(range=[-1.5, 1.5]),
+                title=dict(text=files[0], font=dict(size=20)),
+                hovermode="closest",
+                updatemenus=[{
+                    "type": "buttons",
+                    "buttons": [
+                        {
+                            "label": "Play",
+                            "method": "animate",
+                            "args": [None, {"frame": {"duration": 0, "redraw": True}, "fromcurrent": True, "transition": {"duration": 0}}],
+                        },
+                        {
+                            "label": "Pause",
+                            "method": "animate",
+                            "args": [[None], {"frame": {"duration": 0, "redraw": True}, "mode": "immediate", "transition": {"duration": 0}}],
+                        }
+                    ],
+                }],
+                annotations=frames[0]['layout']['annotations'],
+                sliders=sliders
+            ),
+            frames=frames
+        )
+    else:
+        fig = go.Figure(
+            data=frames[0]['data'],
+            layout=go.Layout(
+                xaxis=dict(range=[-1.5, 1.5]),
+                yaxis=dict(range=[-1.5, 1.5]),
+                title=dict(text=files[0], font=dict(size=20)),
+                hovermode="closest",
+                updatemenus=[{
+                    "type": "buttons",
+                    "buttons": [
+                        {
+                            "label": "Play",
+                            "method": "animate",
+                            "args": [None, {"frame": {"duration": 0, "redraw": True}, "fromcurrent": True, "transition": {"duration": 0}}],
+                        },
+                        {
+                            "label": "Pause",
+                            "method": "animate",
+                            "args": [[None], {"frame": {"duration": 0, "redraw": True}, "mode": "immediate", "transition": {"duration": 0}}],
+                        }
+                    ],
+                }],
+                sliders=sliders
+            ),
+            frames=frames
+        )
     return fig
 
 # Getting visualisation for experiments
 
-experiments = { 0: ['undirected_binomial_graph_binomial_reallocation', False],
-          1: ['undirected_binomial_graph_scalefree_reallocation', False],
-          2: ['undirected_scalefree_graph_binomial_reallocation', False],
-          3:['undirected_scalefree_graph_scalefree_reallocation', False],
-          4: ['directed_binomial_graph_binomial_reallocation', True], 
-          5: ['directed_binomial_graph_scalefree_reallocation', True],
-          6: ['directed_scalefree_graph_binomial_reallocation', True],
-          7: ['directed_scalefree_graph_scalefree_reallocation', True]}
+experiments = { 0: ['undirected_scalefree_graph_no_reallocation_n100_c20', False],
+        #   1: ['undirected_binomial_graph_scalefree_reallocation_n100_c20', False],
+        #   2: ['undirected_scalefree_graph_binomial_reallocation_n100_c20', False],
+        #   3:['undirected_scalefree_graph_scalefree_reallocation_n100_c20', False],
+        #   4: ['directed_binomial_graph_binomial_reallocation_n100_c20', True], 
+        #   5: ['directed_binomial_graph_scalefree_reallocation_n100_c20', True],
+        #   6: ['directed_scalefree_graph_binomial_reallocation_n100_c20', True],
+        #   7: ['directed_scalefree_graph_scalefree_reallocation_n100_c20', True]
+              }
 
 for i in range(len(experiments)):
     print(f'Experiment {i}')
@@ -152,5 +211,5 @@ for i in range(len(experiments)):
     os.makedirs(write_path, exist_ok=True)
     frames, files = create_frames(read_path, directed)
     sliders = create_slider(frames)
-    fig = create_animation(frames, files, sliders)
+    fig = create_animation(frames, files, sliders, directed)
     fig.write_html(f"{write_path}/network_visualisation.html")
