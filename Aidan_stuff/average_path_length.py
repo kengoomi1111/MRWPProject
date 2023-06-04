@@ -62,14 +62,19 @@ def create_animation(data, files):
     return fig
 
 # Experiments visualisations
-experiments = { 0: ['undirected_binomial_graph_binomial_reallocation', False],
-          1: ['undirected_binomial_graph_scalefree_reallocation', False],
-          2: ['undirected_scalefree_graph_binomial_reallocation', False],
-          3:['undirected_scalefree_graph_scalefree_reallocation', False],
-          4: ['directed_binomial_graph_binomial_reallocation', True], 
-          5: ['directed_binomial_graph_scalefree_reallocation', True],
-          6: ['directed_scalefree_graph_binomial_reallocation', True],
-          7: ['directed_scalefree_graph_scalefree_reallocation', True]}
+experiments = { 0: ['undirected_binomial_graph_binomial_reallocation_n100_c20', False],
+          1: ['directed_binomial_graph_binomial_reallocation_n100_c20', False],
+          2: ['undirected_binomial_graph_binomial_reallocation_n100_c20', False],
+          3:['directed_binomial_graph_binomial_reallocation_n100_c20', False],
+          4: ['undirected_binomial_graph_scalefree_reallocation_n100_c20', True], 
+          5: ['directed_binomial_graph_scalefree_reallocation_n100_c20', True],
+          6: ['undirected_scalefree_graph_scalefree_reallocation_n100_c20', True],
+          7: ['directed_scalefree_graph_scalefree_reallocation_n100_c20', True],
+          8: ['undirected_scalefree_graph_no_reallocation_n100_c20', True],
+          9: ['directed_scalefree_graph_no_reallocation_n100_c20', True],
+          10: ['undirected_scalefree_graph_no_reallocation_n100_c20', True],
+          11: ['directed_scalefree_graph_no_reallocation_n100_c20', True],
+              }
 
 for i in range(len(experiments)):
     print(f'Experiment {i}')
